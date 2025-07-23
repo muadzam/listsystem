@@ -21,6 +21,12 @@ pipeline {
                 sh 'docker build -t listsystem-app .'
             }
         }
+		
+		stage('Stop Old Container'){
+			steps{
+				sh "docker rm -f  listsystem-app || true"
+			}
+		}
 
         stage('Run Docker Container') {
             steps {
