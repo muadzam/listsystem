@@ -6,21 +6,13 @@ pipeline {
         }
     }
 
-    environment {
-        COMPOSE_VERSION = "1.29.2"
-    }
-
     stages {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                apk add --no-cache openjdk17 maven curl
-
-                # Install docker-compose
-                curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
-                    -o /usr/local/bin/docker-compose
-                chmod +x /usr/local/bin/docker-compose
-                docker-compose --version
+                apk add --no-cache openjdk17 maven
+                docker version
+                docker compose version
                 '''
             }
         }
@@ -33,8 +25,8 @@ pipeline {
 
         stage('Start with Docker Compose') {
             steps {
-                sh 'docker-compose down || true'
-                sh 'docker-compose up --build -d'
+                sh 'docker compose down || true'
+                sh 'docker compose up --build -d'
             }
         }
     }
