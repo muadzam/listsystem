@@ -10,9 +10,8 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                apk add --no-cache openjdk17 maven
-                docker version
-                docker compose version
+                apk add --no-cache openjdk17 maven curl py3-pip
+                pip install docker-compose
                 '''
             }
         }
@@ -23,10 +22,21 @@ pipeline {
             }
         }
 
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t listsystem-app .'
+            }
+        }
+
+        stage('Stop Old Container') {
+            steps {
+                sh 'docker rm -f listsystem-app || true'
+            }
+        }
+
         stage('Start with Docker Compose') {
             steps {
-                sh 'docker compose down || true'
-                sh 'docker compose up --build -d'
+                sh 'docker-compose up -d'
             }
         }
     }
