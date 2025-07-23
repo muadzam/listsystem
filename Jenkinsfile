@@ -1,32 +1,30 @@
 pipeline {
     agent {
         docker {
-            image 'maven:3.9.6-eclipse-temurin-17'
+            image 'docker:24.0.2-dind'
+            args '-u root --privileged -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
 
     stages {
         stage('Build with Maven') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh '''
+				apk add --no-cache openjdk17 maven
+				mvn clean package -DskipTests
+				'''
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t your-image-name .'
+                sh 'docker build -t listsystem-app .'
             }
         }
 
-        stage('Run Docker Compose') {
+        stage('Run Docker Container') {
             steps {
-                sh 'docker-compose up -d'
-            }
-        }
-
-        stage('Expose with Ngrok') {
-            steps {
-                sh 'ngrok http 8080'
+                sh 'docker run -d -p 8080:8080 listsystem-app'
             }
         }
     }
