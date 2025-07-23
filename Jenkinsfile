@@ -6,31 +6,35 @@ pipeline {
         }
     }
 
+    environment {
+        COMPOSE_VERSION = "1.29.2"
+    }
+
     stages {
-        stage('Build with Maven') {
+        stage('Install Dependencies') {
             steps {
                 sh '''
-				apk add --no-cache openjdk17 maven
-				mvn clean package -DskipTests
-				'''
+                apk add --no-cache openjdk17 maven curl
+
+                # Install docker-compose
+                curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
+                    -o /usr/local/bin/docker-compose
+                chmod +x /usr/local/bin/docker-compose
+                docker-compose --version
+                '''
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build App JAR') {
             steps {
-                sh 'docker build -t listsystem-app .'
+                sh 'mvn clean package -DskipTests'
             }
         }
-		
-		stage('Stop Old Container'){
-			steps{
-				sh "docker rm -f  listsystem-app || true"
-			}
-		}
 
-        stage('Run Docker Container') {
+        stage('Start with Docker Compose') {
             steps {
-                sh 'docker run -d -p 8080:8080 listsystem-app'
+                sh 'docker-compose down || true'
+                sh 'docker-compose up --build -d'
             }
         }
     }
