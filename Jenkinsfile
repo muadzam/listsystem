@@ -10,8 +10,8 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                apk add --no-cache openjdk17 maven curl py3-pip
-                pip install docker-compose
+                apk add --no-cache openjdk17 maven
+                docker compose up -d
                 '''
             }
         }
